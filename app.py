@@ -5,13 +5,19 @@ from pathlib import Path
 
 import cv2
 from flask import Flask, render_template, request
+import logging
 
 from sight_reader_v2 import SightReaderV2
 
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "sight-reader-secret")
-reader = SightReaderV2()
+app.logger.setLevel(logging.INFO)
+
+
+def get_reader():
+    app.logger.info("Initializing SightReaderV2 for request...")
+    return SightReaderV2()
 
 
 def image_to_data_uri(image):
@@ -39,7 +45,8 @@ def index():
             temp_path = tmp.name
 
         try:
-            annotated, notes = reader.process_sheet_music(temp_path, return_details=True)
+            sr = get_reader()
+            annotated, notes = sr.process_sheet_music(temp_path, return_details=True)
             context["image_data"] = image_to_data_uri(annotated)
             context["notes"] = notes
         except Exception as exc:
@@ -48,6 +55,12 @@ def index():
             Path(temp_path).unlink(missing_ok=True)
 
     return render_template("index.html", **context)
+
+
+@app.route("/favicon.ico")
+@app.route("/favicon.png")
+def favicon():
+    return ("", 204)
 
 
 if __name__ == "__main__":

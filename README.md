@@ -11,9 +11,9 @@ A computer vision tool that helps users learn to sight-read sheet music by ident
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies (for CLI + visualization use the dev set):
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 2. Prepare your template images in the `templates/` directory
@@ -28,7 +28,7 @@ python sight_reader.py --input your_sheet_music.jpg
 Prefer a simple upload page? Launch the bundled Flask app, which reuses `SightReaderV2` behind the scenes:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt  # lightweight stack (Flask + OpenCV headless)
 export FLASK_APP=app.py  # or set in .env on Windows
 flask run
 ```
