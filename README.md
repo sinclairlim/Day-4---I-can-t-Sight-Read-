@@ -23,6 +23,24 @@ pip install -r requirements.txt
 python sight_reader.py --input your_sheet_music.jpg
 ```
 
+## Web UI (Flask)
+
+Prefer a simple upload page? Launch the bundled Flask app, which reuses `SightReaderV2` behind the scenes:
+
+```bash
+pip install -r requirements.txt
+export FLASK_APP=app.py  # or set in .env on Windows
+flask run
+```
+
+Open the printed URL, upload a treble+bass score, and the page will return an annotated image plus a table of detected notes. The UI is pure HTML/CSS—no ML services involved.
+
+### Deploying on Vercel
+
+1. Install the Vercel CLI (`npm i -g vercel`) and log in.
+2. Ensure `vercel.json` is present (it routes all traffic to `app.py` via `@vercel/python`).
+3. From the repo root run `vercel` (preview) or `vercel --prod` (production). The builder packages Flask + OpenCV into a serverless function.
+
 ## Current Assumptions / Limitations
 
 - Input should contain paired treble and bass staves repeating in that order (treble, bass, treble, bass, ...); the pitch logic currently decides clef purely by staff index.

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sight Reading Helper</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f6f6f8;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        form {
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e4fd7;
+        }
+
+        .alert {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .result {
+            margin-top: 2rem;
+        }
+
+        .result img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Sight Reading Helper</h1>
+    <p>Upload a two-staff (treble + bass) sheet-music image to detect noteheads and label their pitches. Processing happens with classical OpenCV template matching & geometry—no machine learning required.</p>
+
+    {% if error %}
+        <div class="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="upload-row">
+            <input type="file" name="score" accept="image/*" required>
+            <button type="submit">Analyze Score</button>
+        </div>
+    </form>
+
+    {% if image_data %}
+        <section class="result">
+            <h2>Annotated Score</h2>
+            <img src="{{ image_data }}" alt="Annotated sheet music">
+        </section>
+    {% endif %}
+
+    {% if notes %}
+        <section class="result">
+            <h2>Detected Notes</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Pitch</th>
+                    <th>Clef</th>
+                    <th>Staff</th>
+                    <th>X</th>
+                    <th>Y</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for note in notes %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ note.pitch }}</td>
+                        <td>{{ note.clef or "?" }}</td>
+                        <td>{{ note.staff if note.staff is not none else "?" }}</td>
+                        <td>{{ note.x }}</td>
+                        <td>{{ note.y }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
+</main>
+</body>
+</html>

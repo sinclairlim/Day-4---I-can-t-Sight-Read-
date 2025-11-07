@@ -282,13 +282,14 @@ class SightReaderV2:
 
         return f"{note_name}{octave}"
 
-    def process_sheet_music(self, image_path, output_path=None):
+    def process_sheet_music(self, image_path, output_path=None, return_details=False):
         """
         Process a sheet music image and identify notes.
 
         Args:
             image_path: Path to the sheet music image
             output_path: Optional path to save the annotated image
+            return_details: If True, also return note metadata for UI/reporting
 
         Returns:
             Annotated image with note labels
@@ -313,11 +314,17 @@ class SightReaderV2:
         # Annotate image
         output_image = image.copy()
 
+        note_details = []
+
         print("\nDetected notes:")
         print(f"{'X':<6} {'Y':<6} {'Staff':<7} {'Clef':<8} {'Pitch':<8}")
         print("-" * 45)
 
         for x, y, r in noteheads:
+            note_clef = None
+            note_position = None
+            note_position_rounded = None
+
             # Draw circle around notehead
             cv2.circle(output_image, (x, y), r, (0, 255, 0), 2)
 
@@ -329,25 +336,36 @@ class SightReaderV2:
 
                 # Determine clef based on staff position
                 # Pattern: treble, bass, treble, bass (alternating)
-                clef = "treble" if staff_idx % 2 == 0 else "bass"
+                note_clef = "treble" if staff_idx % 2 == 0 else "bass"
 
                 # Calculate pitch
-                pitch = self.calculate_pitch_from_position(y, staff, clef)
+                pitch = self.calculate_pitch_from_position(y, staff, note_clef)
 
                 # Calculate position for debug
                 bottom_line_y = staff[4]
                 spacing = (staff[4] - staff[0]) / 4
                 half_spacing = spacing / 2
-                position = (bottom_line_y - y) / half_spacing
-                position_rounded = round(position)
+                note_position = (bottom_line_y - y) / half_spacing
+                note_position_rounded = round(note_position)
 
                 # Print debug info
-                print(f"{x:<6} {y:<6} {staff_idx:<7} {clef:<8} {pitch:<8} pos={position:.2f}→{position_rounded}")
+                print(f"{x:<6} {y:<6} {staff_idx:<7} {note_clef:<8} {pitch:<8} pos={note_position:.2f}→{note_position_rounded}")
             else:
                 pitch = "?"
                 print(f"{x:<6} {y:<6} {'None':<7} {'N/A':<8} {pitch:<8}")
 
-            # Draw label (above the notehead) - pitch letter and Y coordinate
+            note_details.append({
+                "x": x,
+                "y": y,
+                "radius": r,
+                "staff": staff_idx,
+                "clef": note_clef,
+                "pitch": pitch,
+                "position": note_position,
+                "position_rounded": note_position_rounded,
+            })
+
+            # Draw label (above the notehead) - pitch only
             label = pitch
             cv2.putText(output_image, label, (x - r, y - r - 5),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 0), 1)
@@ -362,6 +380,8 @@ class SightReaderV2:
             cv2.imwrite(str(output_path), output_image)
             print(f"Saved annotated image to: {output_path}")
 
+        if return_details:
+            return output_image, note_details
         return output_image
 
 
